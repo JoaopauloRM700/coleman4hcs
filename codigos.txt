@@ -1,0 +1,3 @@
+python main_analysis.py --system_name 'FakeData' --project_dir 'example'  --datasets 'fakedata' --results_dir results/experiments
+
+python main.py --project_dir 'data'  --policies 'Random' 'FRR' --output_dir 'results/experiments' --datasets 'fakedata'

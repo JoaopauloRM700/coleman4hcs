@@ -131,11 +131,13 @@ if __name__ == '__main__':
         'UCB (C=0.5)': 'UCB',
         'UCB (C=0.3)': 'UCB',
         'FRRMAB (C=0.3, D=1, SW=100)': 'FRRMAB',
+        'Boltzmann Exploration (T=0.3)':'Boltzmann',
+        'Boltzmann Exploration (T=0.5)':'Boltzmann',
         'mlpclassifier': 'ANN'
     }
     #columns_metrics = ['FRRMAB', 'ANN']
     #columns_metrics = ['Random', 'FRRMAB', 'ANN']
-    columns_metrics = ['Random', 'FRRMAB']
+    columns_metrics = ['FRRMAB', 'Boltzmann']
     #columns_metrics = ['Random', 'Deterministic', 'FRRMAB', 'ANN']
 
     print_dataset(args.datasets[0])

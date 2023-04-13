@@ -10,7 +10,7 @@ from coleman4hcs.agent import RewardAgent, RewardSlidingWindowAgent
 from coleman4hcs.environment import Environment
 from coleman4hcs.evaluation import NAPFDMetric, NAPFDVerdictMetric
 from coleman4hcs.policy import EpsilonGreedyPolicy
-from coleman4hcs.policy import FRRMABPolicy, GreedyPolicy, RandomPolicy, UCBPolicy
+from coleman4hcs.policy import FRRMABPolicy, GreedyPolicy, RandomPolicy, UCBPolicy, BoltzmannExplorationPolicy
 from coleman4hcs.reward import RNFailReward, TimeRankReward
 
 warnings.filterwarnings("ignore")
@@ -22,6 +22,7 @@ EXPERIMENT_DIR = DEFAULT_EXPERIMENT_DIR
 DEFAULT_SCALING_FACTOR_FRR = [0.3]
 DEFAULT_SCALING_FACTOR_UCB = [0.5, 0.3]
 DEFAULT_EPSILON = [0.5, 0.3]
+DEFAULT_TEMPERATURE = [0.5, 0.3]
 DEFAULT_WINDOW_SIZES = [100]
 DEFAULT_SCHED_TIME_RATIO = [0.1, 0.5, 0.8]
 
@@ -50,6 +51,12 @@ def run_experiments_with_threads(repo_path, dataset, policies, window_sizes=DEFA
                     agents.append(RewardAgent(policy, rew_fun))
                 elif type(rew_fun) == RNFailReward and policy.epsilon == 0.3:
                     agents.append(RewardAgent(policy, rew_fun))
+            elif type(policy) == BoltzmannExplorationPolicy:
+                # Based on tunning settings
+                if (type(rew_fun) == TimeRankReward) and policy.temperature == 0.5:
+                    agents.append(RewardAgent(policy, rew_fun))
+                elif type(rew_fun) == RNFailReward and policy.temperature == 0.3:
+                    agents.append(RewardAgent(policy, rew_fun)) 
             else:
                 agents.append(RewardAgent(policy, rew_fun))
 
@@ -118,6 +125,11 @@ if __name__ == '__main__':
 
     ap.add_argument('--epsilon', type=int, nargs='+', default=DEFAULT_EPSILON)
 
+    
+    ap.add_argument('--temperature', type=int, nargs='+', default=DEFAULT_TEMPERATURE)
+
+    
+
     ap.add_argument('--window_sizes', type=int, nargs='+',
                     default=DEFAULT_WINDOW_SIZES)
 
@@ -156,6 +168,9 @@ if __name__ == '__main__':
         elif pol == "FRR":
             policies.extend([FRRMABPolicy(float(scaling))
                              for scaling in args.scaling_factor_frr])
+        elif pol == "Boltzmann":
+            policies.extend([BoltzmannExplorationPolicy(float(temperature))
+                            for temperature in args.temperature])
         else:
             print(f"Policies '{pol}' not found!")
 

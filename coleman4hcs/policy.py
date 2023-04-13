@@ -58,9 +58,10 @@ class EpsilonGreedyPolicy(Policy):
         # How much are been selected by "best" value
         qnt_actions = sum([1 for _ in range(len(temp_actions)) if np.random.random() > self.epsilon])
 
-        actions = []
-        # Get from top the "n" best values
-        if qnt_actions > 0:
+        # Error handling for division by zero
+        if qnt_actions == 0:
+            actions = []
+        else:
             actions = temp_actions.head(qnt_actions)['Name'].tolist()
             temp_actions = temp_actions[~temp_actions.Name.isin(actions)]
 
@@ -69,6 +70,7 @@ class EpsilonGreedyPolicy(Policy):
         actions.extend(t_actions)
 
         return actions
+
 
 
 class GreedyPolicy(EpsilonGreedyPolicy):
@@ -235,3 +237,36 @@ class FRRMABPolicy(Policy):
         # exploration = np.sqrt((2 * np.log(reward_arm)) / selected_times)
         exploration[np.isnan(exploration)] = 0
         self.history['Q'] = frr + self.c * exploration
+
+
+
+class BoltzmannExplorationPolicy(Policy):
+    """
+    The Boltzmann Exploration policy selects actions based on their estimated value
+    and a temperature parameter. Higher estimated values have higher probability
+    of being chosen, but the temperature parameter controls the level of randomness.
+    Higher temperature values result in more exploration, while lower temperature
+    values result in more exploitation.
+    """
+
+    def __init__(self, temperature):
+        self.temperature = temperature
+
+    def __str__(self):
+        return f'Boltzmann Exploration (T={self.temperature})'
+
+    def choose_all(self, agent: Agent):
+        # Calculate action probabilities using Boltzmann distribution
+        q_values = agent.actions['Q'].values
+        probabilities = np.exp(q_values / self.temperature)
+        probabilities /= np.sum(probabilities)
+
+        if np.isnan(probabilities).any():
+            # If probabilities contain NaN, set them to uniform probabilities
+            probabilities = np.ones(agent.actions.shape[0]) / agent.actions.shape[0]
+
+        # Select actions based on the calculated probabilities
+        actions = np.random.choice(agent.actions['Name'].values, size=agent.actions.shape[0], replace=False, p=probabilities)
+
+        return actions.tolist()
+
